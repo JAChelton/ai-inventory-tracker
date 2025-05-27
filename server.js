@@ -5,6 +5,7 @@ const OpenAI = require('openai');
 const helmet = require('helmet');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 const NodeCache = require('node-cache');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -28,6 +29,9 @@ const rateLimiter = new RateLimiterMemory({
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from the frontend build directory
+app.use(express.static(path.join(__dirname, 'frontend/dist')));
 
 // Rate limiting middleware
 app.use(async (req, res, next) => {
@@ -94,6 +98,11 @@ app.post('/api/inventory/analyze', async (req, res) => {
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Serve index.html for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
 });
 
 // Error handling
